@@ -1,2 +1,2 @@
-streamlit>=1.38.0
-web3>=7.0.0
+streamlit
+web3==6.20.0
