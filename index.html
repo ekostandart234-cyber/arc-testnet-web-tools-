@@ -1,14 +1,11 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arc Testnet Web Tools</title>
     <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.60.0/build/stlite.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.60.0/build/stlite.css">
-    <style>
-        body { margin: 0; font-family: system-ui, sans-serif; }
-    </style>
 </head>
 <body>
     <div id="root"></div>
@@ -19,97 +16,155 @@
             files: {
                 "app.py": `
 import streamlit as st
-from web3 import Web3
-import os
 
 st.set_page_config(page_title="Arc Testnet Web Tools", page_icon="🌐", layout="wide")
 
 st.title("🌐 Arc Testnet Web Tools")
-st.markdown("**Удобный веб-инструмент для Arc Testnet • Для Arc Architects**")
+st.markdown("**Convenient deployment tool for Arc Testnet**")
 
 # ===================== CONFIG =====================
-RPC_URL = "https://rpc.testnet.arc.network"
 CHAIN_ID = 5042002
 EXPLORER = "https://testnet.arcscan.app"
-MULTICALL3 = "0xcA11bde05977b3631167028862bE2a173976CA11"
-
-w3 = Web3(Web3.HTTPProvider(RPC_URL))
 
 st.sidebar.header("🔗 Wallet")
 if st.sidebar.button("Connect MetaMask", type="primary"):
-    st.sidebar.success("MetaMask подключён (демо)")
+    st.sidebar.success("MetaMask connected (demo)")
 
-st.sidebar.markdown("---")
 st.sidebar.metric("Network", "Arc Testnet")
 st.sidebar.metric("Chain ID", CHAIN_ID)
 st.sidebar.markdown(f"[🔎 Explorer]({EXPLORER})")
-st.sidebar.markdown(f"[🚰 Faucet](https://faucet.circle.com)")
 
-tab1, tab2, tab3, tab4 = st.tabs(["💰 Send USDC", "📦 Batch Send (Multicall3)", "📜 Deploy Contract", "📊 Network Info"])
-
-with tab1:
-    st.subheader("Отправка USDC")
-    recipient = st.text_input("Адрес получателя", placeholder="0x...")
-    amount = st.number_input("Сумма USDC", min_value=0.01, value=1.0, step=0.1)
-    if st.button("Отправить USDC", type="primary"):
-        st.info("MetaMask интеграция будет добавлена позже")
-
-with tab2:
-    st.subheader("📦 Batch Send через Multicall3")
-    st.caption(f"Multicall3: \`{MULTICALL3[:12]}...\`")
-    addresses_text = st.text_area("Список адресов (по одному на строку)", height=180, placeholder="0x1111...\\n0x2222...\\n0x3333...")
-    amount_per = st.number_input("Сумма USDC каждому", min_value=0.01, value=0.25, step=0.05)
-    if st.button("🚀 Отправить Batch (Multicall3)", type="primary"):
-        if addresses_text.strip():
-            addresses = [addr.strip() for addr in addresses_text.splitlines() if addr.strip()]
-            total = len(addresses) * amount_per
-            st.success(f"Подготовлено адресов: **{len(addresses)}**")
-            st.metric("Всего будет отправлено", f"{total:.4f} USDC")
+tab1, tab2, tab3, tab4 = st.tabs(["💰 Send USDC", "📦 Batch Send", "📜 Deploy Contract", "📊 Info"])
 
 with tab3:
     st.subheader("📜 Deploy Smart Contract")
-    contract_option = st.selectbox("Выберите контракт", ["Simple Counter", "Basic ERC-20 (скоро)"])
-    if contract_option == "Simple Counter":
-        try:
-            with open("Counter.sol", "r", encoding="utf-8") as f:
-                contract_code = f.read()
-            st.code(contract_code, language="solidity")
-        except:
-            st.error("Файл Counter.sol не найден")
-        if st.button("Deploy Counter Contract", type="primary"):
-            st.success("Контракт готов к деплою через MetaMask!")
+    
+    category = st.selectbox("Select Category", [
+        "Counters", "ERC-20 Tokens", "NFT (ERC721)", "DeFi", "Utilities", "Other"
+    ])
+    
+    if category == "Counters":
+        contract_name = st.selectbox("Select Contract", [
+            "Simple Counter", "Improved Counter", "Resetable Counter"
+        ])
+    elif category == "ERC-20 Tokens":
+        contract_name = st.selectbox("Select Contract", [
+            "Simple ERC20", "ERC20 with Mint", "ERC20 with Burn & Mint", "ERC20 with Tax"
+        ])
+    elif category == "NFT (ERC721)":
+        contract_name = st.selectbox("Select Contract", [
+            "Basic ERC721", "ERC721 with Metadata", "Limited NFT Collection"
+        ])
+    elif category == "DeFi":
+        contract_name = st.selectbox("Select Contract", [
+            "Simple Staking", "Vesting Contract", "Liquidity Pool Mock"
+        ])
+    elif category == "Utilities":
+        contract_name = st.selectbox("Select Contract", [
+            "Ownable", "Pausable", "Timelock Controller", "Merkle Distributor"
+        ])
+    else:
+        contract_name = st.selectbox("Select Contract", ["Hello World"])
 
-with tab4:
-    col1, col2 = st.columns(2)
-    with col1:
-        st.metric("Последний блок", "— (в браузере)")
-        st.metric("Gas Price", "— Gwei")
-    with col2:
-        st.metric("Chain ID", CHAIN_ID)
-        st.metric("Native Token", "USDC")
-                
-st.caption("🔧 Открытый инструмент для сообщества Arc")
-                `,
-                "Counter.sol": `// Вставь сюда содержимое твоего Counter.sol
-// (скопируй текст из contracts/Counter.sol)
-pragma solidity ^0.8.0;
-
+    # ================== CONTRACTS ==================
+    contracts = {
+        "Simple Counter": """pragma solidity ^0.8.20;
 contract Counter {
     uint256 public count;
+    function increment() public { count += 1; }
+    function decrement() public { count -= 1; }
+    function getCount() public view returns (uint256) { return count; }
+}""",
 
+        "Improved Counter": """pragma solidity ^0.8.20;
+contract ImprovedCounter {
+    uint256 public count;
+    address public owner;
+    
+    event Incremented(address indexed user, uint256 newCount);
+    
+    constructor() { owner = msg.sender; }
+    
+    modifier onlyOwner() { require(msg.sender == owner, "Not owner"); _; }
+    
     function increment() public {
         count += 1;
+        emit Incremented(msg.sender, count);
+    }
+}""",
+
+        "Simple ERC20": """pragma solidity ^0.8.20;
+contract SimpleERC20 {
+    string public name = "Arc Test Token";
+    string public symbol = "ARCT";
+    uint8 public decimals = 18;
+    uint256 public totalSupply;
+    mapping(address => uint256) public balanceOf;
+
+    constructor(uint256 initialSupply) {
+        totalSupply = initialSupply * 10**18;
+        balanceOf[msg.sender] = totalSupply;
     }
 
-    function decrement() public {
-        count -= 1;
+    function transfer(address to, uint256 amount) public returns (bool) {
+        require(balanceOf[msg.sender] >= amount, "Not enough tokens");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount;
+        return true;
     }
+}""",
 
-    function getCount() public view returns (uint256) {
-        return count;
+        "ERC20 with Mint": """pragma solidity ^0.8.20;
+contract MintableERC20 {
+    string public name = "Arc Mint Token";
+    string public symbol = "ARCM";
+    uint8 public decimals = 18;
+    uint256 public totalSupply;
+    address public owner;
+    mapping(address => uint256) public balanceOf;
+
+    constructor() { owner = msg.sender; }
+
+    modifier onlyOwner() { require(msg.sender == owner); _; }
+
+    function mint(address to, uint256 amount) public onlyOwner {
+        totalSupply += amount;
+        balanceOf[to] += amount;
     }
-}
-`
+}""",
+
+        "Basic ERC721": """pragma solidity ^0.8.20;
+contract BasicNFT {
+    string public name = "Arc NFTs";
+    string public symbol = "ARCNFT";
+    mapping(uint256 => address) public ownerOf;
+    uint256 public nextTokenId;
+
+    function mint() public {
+        ownerOf[nextTokenId] = msg.sender;
+        nextTokenId++;
+    }
+}"""
+    };
+
+    code = contracts.get(contract_name, "// Contract under development")
+    st.code(code, language="solidity")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🚀 Deploy Contract", type="primary", use_container_width=True):
+            st.success(f"✅ Contract **{contract_name}** is ready!")
+            st.info("MetaMask integration will be added in the next version")
+    with col2:
+        st.link_button("Open Explorer", EXPLORER)
+
+with tab1:
+    st.subheader("Send USDC")
+    st.info("This section is under development")
+
+st.divider()
+st.caption("🔧 Arc Testnet Web Tools • Open tool for the community")
+                `
             },
             requirements: ["web3==6.20.0"],
             theme: "dark"
