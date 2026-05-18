@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arc Testnet Web Tools</title>
-    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.60.0/build/stlite.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.60.0/build/stlite.css">
+    <script src="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.59.0/build/stlite.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@stlite/mountable@0.59.0/build/stlite.css">
 </head>
 <body>
     <div id="root"></div>
@@ -20,51 +20,39 @@ import streamlit as st
 st.set_page_config(page_title="Arc Testnet Web Tools", page_icon="🌐", layout="wide")
 
 st.title("🌐 Arc Testnet Web Tools")
-st.markdown("**Convenient deployment tool for Arc Testnet**")
+st.markdown("**Smart Contract Deployment Tool for Arc Testnet**")
 
-# ===================== CONFIG =====================
-CHAIN_ID = 5042002
-EXPLORER = "https://testnet.arcscan.app"
-
+# ===================== SIDEBAR =====================
 st.sidebar.header("🔗 Wallet")
 if st.sidebar.button("Connect MetaMask", type="primary"):
     st.sidebar.success("MetaMask connected (demo)")
 
 st.sidebar.metric("Network", "Arc Testnet")
-st.sidebar.metric("Chain ID", CHAIN_ID)
-st.sidebar.markdown(f"[🔎 Explorer]({EXPLORER})")
+st.sidebar.metric("Chain ID", "5042002")
+st.sidebar.markdown("[🔎 Explorer](https://testnet.arcscan.app)")
 
-tab1, tab2, tab3, tab4 = st.tabs(["💰 Send USDC", "📦 Batch Send", "📜 Deploy Contract", "📊 Info"])
+# ===================== TABS =====================
+tab1, tab2, tab3 = st.tabs(["💰 Send USDC", "📦 Batch Send", "📜 Deploy Contract"])
 
 with tab3:
     st.subheader("📜 Deploy Smart Contract")
     
     category = st.selectbox("Select Category", [
-        "Counters", "ERC-20 Tokens", "NFT (ERC721)", "DeFi", "Utilities", "Other"
+        "Counters", "ERC-20 Tokens", "NFT (ERC721)", "Utilities"
     ])
     
     if category == "Counters":
         contract_name = st.selectbox("Select Contract", [
-            "Simple Counter", "Improved Counter", "Resetable Counter"
+            "Simple Counter", "Improved Counter"
         ])
     elif category == "ERC-20 Tokens":
         contract_name = st.selectbox("Select Contract", [
-            "Simple ERC20", "ERC20 with Mint", "ERC20 with Burn & Mint", "ERC20 with Tax"
+            "Simple ERC20", "ERC20 with Mint"
         ])
     elif category == "NFT (ERC721)":
-        contract_name = st.selectbox("Select Contract", [
-            "Basic ERC721", "ERC721 with Metadata", "Limited NFT Collection"
-        ])
-    elif category == "DeFi":
-        contract_name = st.selectbox("Select Contract", [
-            "Simple Staking", "Vesting Contract", "Liquidity Pool Mock"
-        ])
-    elif category == "Utilities":
-        contract_name = st.selectbox("Select Contract", [
-            "Ownable", "Pausable", "Timelock Controller", "Merkle Distributor"
-        ])
+        contract_name = st.selectbox("Select Contract", ["Basic ERC721"])
     else:
-        contract_name = st.selectbox("Select Contract", ["Hello World"])
+        contract_name = st.selectbox("Select Contract", ["Ownable"])
 
     # ================== CONTRACTS ==================
     contracts = {
@@ -72,7 +60,7 @@ with tab3:
 contract Counter {
     uint256 public count;
     function increment() public { count += 1; }
-    function decrement() public { count -= 1; }
+    function decrement() public { if (count > 0) count -= 1; }
     function getCount() public view returns (uint256) { return count; }
 }""",
 
@@ -80,8 +68,7 @@ contract Counter {
 contract ImprovedCounter {
     uint256 public count;
     address public owner;
-    
-    event Incremented(address indexed user, uint256 newCount);
+    event Incremented(address indexed user);
     
     constructor() { owner = msg.sender; }
     
@@ -89,7 +76,7 @@ contract ImprovedCounter {
     
     function increment() public {
         count += 1;
-        emit Incremented(msg.sender, count);
+        emit Incremented(msg.sender);
     }
 }""",
 
@@ -107,7 +94,7 @@ contract SimpleERC20 {
     }
 
     function transfer(address to, uint256 amount) public returns (bool) {
-        require(balanceOf[msg.sender] >= amount, "Not enough tokens");
+        require(balanceOf[msg.sender] >= amount, "Insufficient balance");
         balanceOf[msg.sender] -= amount;
         balanceOf[to] += amount;
         return true;
@@ -138,7 +125,7 @@ contract BasicNFT {
     string public name = "Arc NFTs";
     string public symbol = "ARCNFT";
     mapping(uint256 => address) public ownerOf;
-    uint256 public nextTokenId;
+    uint256 public nextTokenId = 1;
 
     function mint() public {
         ownerOf[nextTokenId] = msg.sender;
@@ -147,26 +134,21 @@ contract BasicNFT {
 }"""
     };
 
-    code = contracts.get(contract_name, "// Contract under development")
+    code = contracts.get(contract_name, "// Contract not found")
     st.code(code, language="solidity")
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🚀 Deploy Contract", type="primary", use_container_width=True):
-            st.success(f"✅ Contract **{contract_name}** is ready!")
-            st.info("MetaMask integration will be added in the next version")
-    with col2:
-        st.link_button("Open Explorer", EXPLORER)
+    if st.button("🚀 Deploy Contract", type="primary"):
+        st.success(f"✅ Contract **{contract_name}** is ready for deployment!")
+        st.info("MetaMask integration coming soon")
 
 with tab1:
-    st.subheader("Send USDC")
-    st.info("This section is under development")
+    st.info("USDC sending functionality will be added soon")
 
 st.divider()
-st.caption("🔧 Arc Testnet Web Tools • Open tool for the community")
+st.caption("🔧 Arc Testnet Web Tools • Community Tool")
                 `
             },
-            requirements: ["web3==6.20.0"],
+            requirements: [],
             theme: "dark"
         })
     </script>
