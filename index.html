@@ -25,35 +25,53 @@ st.set_page_config(page_title="Arc Testnet Web Tools", page_icon="🌐", layout=
 st.title("🌐 Arc Testnet Web Tools")
 st.markdown("**Smart Contract Deployment Tool for Arc Testnet**")
 
-# Sidebar
-st.sidebar.header("🔗 Wallet")
-if st.sidebar.button("Connect MetaMask", type="primary"):
-    st.sidebar.success("MetaMask connected (demo)")
-
+# ===================== SIDEBAR =====================
+st.sidebar.header("🔗 Wallet Connection")
+st.sidebar.info("Connect any EVM wallet (MetaMask, WalletConnect, etc.)")
 st.sidebar.metric("Network", "Arc Testnet")
 st.sidebar.metric("Chain ID", "5042002")
 st.sidebar.markdown("[🔎 Explorer](https://testnet.arcscan.app)")
 
-# Tabs
+# ===================== TABS =====================
 tab1, tab2, tab3 = st.tabs(["💰 Send USDC", "📦 Batch Send", "📜 Deploy Contract"])
 
 with tab3:
     st.subheader("📜 Deploy Smart Contract")
     
     category = st.selectbox("Select Category", [
-        "Counters", "ERC-20 Tokens", "NFT", "Utilities"
+        "Counters", 
+        "ERC-20 Tokens", 
+        "NFT (ERC721)", 
+        "DeFi", 
+        "Utilities"
     ])
     
     if category == "Counters":
-        contract_name = st.selectbox("Select Contract", ["Simple Counter", "Improved Counter"])
+        contract_name = st.selectbox("Select Contract", [
+            "Simple Counter", 
+            "Improved Counter", 
+            "Resetable Counter"
+        ])
     elif category == "ERC-20 Tokens":
-        contract_name = st.selectbox("Select Contract", ["Simple ERC20", "ERC20 with Mint"])
-    elif category == "NFT":
-        contract_name = st.selectbox("Select Contract", ["Basic ERC721"])
+        contract_name = st.selectbox("Select Contract", [
+            "Simple ERC20", 
+            "ERC20 with Mint", 
+            "ERC20 with Burn & Mint"
+        ])
+    elif category == "NFT (ERC721)":
+        contract_name = st.selectbox("Select Contract", [
+            "Basic ERC721", 
+            "ERC721 with Metadata"
+        ])
+    elif category == "DeFi":
+        contract_name = st.selectbox("Select Contract", [
+            "Simple Staking", 
+            "Vesting Contract"
+        ])
     else:
-        contract_name = st.selectbox("Select Contract", ["Ownable"])
+        contract_name = st.selectbox("Select Contract", ["Ownable", "Pausable"])
 
-    # Contracts
+    # ================== CONTRACTS ==================
     contracts = {
         "Simple Counter": """pragma solidity ^0.8.20;
 contract Counter {
@@ -96,21 +114,53 @@ contract SimpleERC20 {
         balanceOf[to] += amount;
         return true;
     }
+}""",
+
+        "ERC20 with Mint": """pragma solidity ^0.8.20;
+contract MintableERC20 {
+    string public name = "Arc Mint Token";
+    string public symbol = "ARCM";
+    uint8 public decimals = 18;
+    uint256 public totalSupply;
+    address public owner;
+    mapping(address => uint256) public balanceOf;
+
+    constructor() { owner = msg.sender; }
+
+    modifier onlyOwner() { require(msg.sender == owner); _; }
+
+    function mint(address to, uint256 amount) public onlyOwner {
+        totalSupply += amount;
+        balanceOf[to] += amount;
+    }
+}""",
+
+        "Basic ERC721": """pragma solidity ^0.8.20;
+contract BasicERC721 {
+    string public name = "Arc NFTs";
+    string public symbol = "ARCNFT";
+    mapping(uint256 => address) public ownerOf;
+    uint256 public nextTokenId = 1;
+
+    function mint() public {
+        ownerOf[nextTokenId] = msg.sender;
+        nextTokenId++;
+    }
 }"""
     };
 
-    code = contracts.get(contract_name, "// Contract not found")
+    code = contracts.get(contract_name, "// Contract under development")
     st.code(code, language="solidity")
 
     if st.button("🚀 Deploy Contract", type="primary"):
-        st.success(f"✅ Contract **{contract_name}** is ready!")
-        st.info("MetaMask integration coming soon")
+        st.success(f"✅ Contract **{contract_name}** is ready for deployment!")
+        st.info("Connect your wallet and use Remix or Hardhat for actual deployment")
 
 with tab1:
-    st.info("USDC sending will be added soon")
+    st.info("💰 USDC sending functionality will be added in the next update")
 
 st.divider()
-st.caption("🔧 Arc Testnet Web Tools • Community Project")
+st.caption("🔧 Arc Testnet Web Tools • Open Source Community Tool")
                 `
             },
             requirements: [],
