@@ -1,2 +1,1 @@
-streamlit
-web3==6.20.0
+
