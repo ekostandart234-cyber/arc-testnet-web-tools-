@@ -54,7 +54,7 @@ with tab3:
     else:
         contract_name = st.selectbox("Select Contract", ["Ownable"])
 
-    # ================== CONTRACTS ==================
+    # ================== CONTRACT LIBRARY ==================
     contracts = {
         "Simple Counter": """pragma solidity ^0.8.20;
 contract Counter {
@@ -138,17 +138,17 @@ contract BasicNFT {
     st.code(code, language="solidity")
 
     if st.button("🚀 Deploy Contract", type="primary"):
-        st.success(f"✅ Contract **{contract_name}** is ready for deployment!")
-        st.info("MetaMask integration coming soon")
+        st.success(f"✅ **{contract_name}** is ready!")
+        st.info("MetaMask integration will be added in future versions")
 
 with tab1:
-    st.info("USDC sending functionality will be added soon")
+    st.info("💰 USDC transfer functionality coming soon")
 
 st.divider()
-st.caption("🔧 Arc Testnet Web Tools • Community Tool")
+st.caption("🔧 Arc Testnet Web Tools • Open Source Community Tool")
                 `
             },
-            requirements: [],
+            requirements: [],   # ← Важно! Без web3
             theme: "dark"
         })
     </script>
